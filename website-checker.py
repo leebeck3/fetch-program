@@ -43,7 +43,7 @@ class Website:
     def requests_method(self):
         try:
             method_func = getattr(requests, self.method.lower())
-            response = method_func(self.url, headers=self.headers, data=self.body, timeout=5)
+            response = method_func(self.url, headers=self.headers, data=self.body, timeout=0.5)
             return response
         except requests.RequestException as e:
             if self.verbosity:
