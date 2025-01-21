@@ -33,9 +33,13 @@ python script_name.py
 
 Replace `script_name.py` with the actual name of your script.
 
+## Architecture
+
+The goal of this program is have everything written out in the main() module, then there will be API interfaces between each function so you can delve into each error as it crops up. So far this hasn't affected execution speeds(test set was 100 sites).
+
 ## Contributing
 
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
+Contributions are welcome, I don't know why you would but be my guest! Just submit a PR, if I see it I'll do something with it(this whole repo will probably be deleted once the job interview is done[if I remember])
 
 ## License
 

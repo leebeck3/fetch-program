@@ -1,0 +1,604 @@
+- name: Google
+  url: https://www.google.com
+  headers:
+    Accept: "text/html"
+
+- name: GitHub
+  url: https://api.github.com
+  method: GET
+  headers:
+    User-Agent: "Python-urllib"
+
+- name: Wikipedia
+  url: https://en.wikipedia.org/wiki/Main_Page
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: OpenWeather
+  url: https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Postman Echo
+  url: https://postman-echo.com/post
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"key": "value"}'
+
+- name: JSONPlaceholder
+  url: https://jsonplaceholder.typicode.com/posts
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"title": "foo", "body": "bar", "userId": 1}'
+
+- name: Example
+  url: https://www.example.com
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Bing
+  url: https://www.bing.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: DuckDuckGo
+  url: https://duckduckgo.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: Python
+  url: https://www.python.org
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: Reddit
+  url: https://www.reddit.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: SpaceX API
+  url: https://api.spacexdata.com/v4/launches/latest
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Placeholder PUT
+  url: https://jsonplaceholder.typicode.com/posts/1
+  method: PUT
+  headers:
+    Content-Type: "application/json"
+  body: '{"id": 1, "title": "foo", "body": "bar", "userId": 1}'
+
+- name: HTTPBin
+  url: https://httpbin.org/delete
+  method: DELETE
+  headers:
+    Accept: "application/json"
+
+- name: Yahoo
+  url: https://www.yahoo.com
+  headers:
+    Accept: "text/html"
+
+- name: Nasa API
+  url: https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: XKCD
+  url: https://xkcd.com/info.0.json
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Twitter API
+  url: https://api.twitter.com/2/tweets
+  method: GET
+  headers:
+    Authorization: "Bearer YOUR_ACCESS_TOKEN"
+
+- name: World Clock API
+  url: http://worldclockapi.com/api/json/utc/now
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Google
+  url: https://www.google.com
+  headers:
+    Accept: "text/html"
+
+- name: GitHub
+  url: https://api.github.com
+  method: GET
+  headers:
+    User-Agent: "Python-urllib"
+
+- name: Wikipedia
+  url: https://en.wikipedia.org/wiki/Main_Page
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: OpenWeather
+  url: https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Postman Echo
+  url: https://postman-echo.com/post
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"key": "value"}'
+
+- name: JSONPlaceholder
+  url: https://jsonplaceholder.typicode.com/posts
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"title": "foo", "body": "bar", "userId": 1}'
+
+- name: Example
+  url: https://www.example.com
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Bing
+  url: https://www.bing.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: DuckDuckGo
+  url: https://duckduckgo.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: Python
+  url: https://www.python.org
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: Reddit
+  url: https://www.reddit.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: SpaceX API
+  url: https://api.spacexdata.com/v4/launches/latest
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Placeholder PUT
+  url: https://jsonplaceholder.typicode.com/posts/1
+  method: PUT
+  headers:
+    Content-Type: "application/json"
+  body: '{"id": 1, "title": "foo", "body": "bar", "userId": 1}'
+
+- name: HTTPBin
+  url: https://httpbin.org/delete
+  method: DELETE
+  headers:
+    Accept: "application/json"
+
+- name: Yahoo
+  url: https://www.yahoo.com
+  headers:
+    Accept: "text/html"
+
+- name: Nasa API
+  url: https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: XKCD
+  url: https://xkcd.com/info.0.json
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Twitter API
+  url: https://api.twitter.com/2/tweets
+  method: GET
+  headers:
+    Authorization: "Bearer YOUR_ACCESS_TOKEN"
+
+- name: World Clock API
+  url: http://worldclockapi.com/api/json/utc/now
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Google
+  url: https://www.google.com
+  headers:
+    Accept: "text/html"
+
+- name: GitHub
+  url: https://api.github.com
+  method: GET
+  headers:
+    User-Agent: "Python-urllib"
+
+- name: Wikipedia
+  url: https://en.wikipedia.org/wiki/Main_Page
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: OpenWeather
+  url: https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Postman Echo
+  url: https://postman-echo.com/post
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"key": "value"}'
+
+- name: JSONPlaceholder
+  url: https://jsonplaceholder.typicode.com/posts
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"title": "foo", "body": "bar", "userId": 1}'
+
+- name: Example
+  url: https://www.example.com
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Bing
+  url: https://www.bing.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: DuckDuckGo
+  url: https://duckduckgo.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: Python
+  url: https://www.python.org
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: Reddit
+  url: https://www.reddit.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: SpaceX API
+  url: https://api.spacexdata.com/v4/launches/latest
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Placeholder PUT
+  url: https://jsonplaceholder.typicode.com/posts/1
+  method: PUT
+  headers:
+    Content-Type: "application/json"
+  body: '{"id": 1, "title": "foo", "body": "bar", "userId": 1}'
+
+- name: HTTPBin
+  url: https://httpbin.org/delete
+  method: DELETE
+  headers:
+    Accept: "application/json"
+
+- name: Yahoo
+  url: https://www.yahoo.com
+  headers:
+    Accept: "text/html"
+
+- name: Nasa API
+  url: https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: XKCD
+  url: https://xkcd.com/info.0.json
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Twitter API
+  url: https://api.twitter.com/2/tweets
+  method: GET
+  headers:
+    Authorization: "Bearer YOUR_ACCESS_TOKEN"
+
+- name: World Clock API
+  url: http://worldclockapi.com/api/json/utc/now
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Google
+  url: https://www.google.com
+  headers:
+    Accept: "text/html"
+
+- name: GitHub
+  url: https://api.github.com
+  method: GET
+  headers:
+    User-Agent: "Python-urllib"
+
+- name: Wikipedia
+  url: https://en.wikipedia.org/wiki/Main_Page
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: OpenWeather
+  url: https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Postman Echo
+  url: https://postman-echo.com/post
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"key": "value"}'
+
+- name: JSONPlaceholder
+  url: https://jsonplaceholder.typicode.com/posts
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"title": "foo", "body": "bar", "userId": 1}'
+
+- name: Example
+  url: https://www.example.com
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Bing
+  url: https://www.bing.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: DuckDuckGo
+  url: https://duckduckgo.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: Python
+  url: https://www.python.org
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: Reddit
+  url: https://www.reddit.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: SpaceX API
+  url: https://api.spacexdata.com/v4/launches/latest
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Placeholder PUT
+  url: https://jsonplaceholder.typicode.com/posts/1
+  method: PUT
+  headers:
+    Content-Type: "application/json"
+  body: '{"id": 1, "title": "foo", "body": "bar", "userId": 1}'
+
+- name: HTTPBin
+  url: https://httpbin.org/delete
+  method: DELETE
+  headers:
+    Accept: "application/json"
+
+- name: Yahoo
+  url: https://www.yahoo.com
+  headers:
+    Accept: "text/html"
+
+- name: Nasa API
+  url: https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: XKCD
+  url: https://xkcd.com/info.0.json
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Twitter API
+  url: https://api.twitter.com/2/tweets
+  method: GET
+  headers:
+    Authorization: "Bearer YOUR_ACCESS_TOKEN"
+
+- name: World Clock API
+  url: http://worldclockapi.com/api/json/utc/now
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Google
+  url: https://www.google.com
+  headers:
+    Accept: "text/html"
+
+- name: GitHub
+  url: https://api.github.com
+  method: GET
+  headers:
+    User-Agent: "Python-urllib"
+
+- name: Wikipedia
+  url: https://en.wikipedia.org/wiki/Main_Page
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: OpenWeather
+  url: https://api.openweathermap.org/data/2.5/weather?q=London&appid=demo
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Postman Echo
+  url: https://postman-echo.com/post
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"key": "value"}'
+
+- name: JSONPlaceholder
+  url: https://jsonplaceholder.typicode.com/posts
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  body: '{"title": "foo", "body": "bar", "userId": 1}'
+
+- name: Example
+  url: https://www.example.com
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Bing
+  url: https://www.bing.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: DuckDuckGo
+  url: https://duckduckgo.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: Python
+  url: https://www.python.org
+  method: GET
+  headers:
+    Accept: "text/html"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com
+  method: GET
+  headers:
+    Accept-Language: "en-US"
+
+- name: Reddit
+  url: https://www.reddit.com
+  method: GET
+  headers:
+    User-Agent: "Mozilla/5.0"
+
+- name: SpaceX API
+  url: https://api.spacexdata.com/v4/launches/latest
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: Placeholder PUT
+  url: https://jsonplaceholder.typicode.com/posts/1
+  method: PUT
+  headers:
+    Content-Type: "application/json"
+  body: '{"id": 1, "title": "foo", "body": "bar", "userId": 1}'
+
+- name: HTTPBin
+  url: https://httpbin.org/delete
+  method: DELETE
+  headers:
+    Accept: "application/json"
+
+- name: Yahoo
+  url: https://www.yahoo.com
+  headers:
+    Accept: "text/html"
+
+- name: Nasa API
+  url: https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY
+  method: GET
+  headers:
+    Content-Type: "application/json"
+
+- name: XKCD
+  url: https://xkcd.com/info.0.json
+  method: GET
+  headers:
+    Accept: "application/json"
+
+- name: Twitter API
+  url: https://api.twitter.com/2/tweets
+  method: GET
+  headers:
+    Authorization: "Bearer YOUR_ACCESS_TOKEN"
+
+- name: World Clock API
+  url: http://worldclockapi.com/api/json/utc/now
+  method: GET
+  headers:
+    Accept: "application/json"
