@@ -6,7 +6,6 @@ from urllib.parse import urlparse
 #third party libraries
 import yaml
 import urllib3
-import docstring
 
 # Logging setup
 logging.basicConfig(
@@ -14,23 +13,23 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 error_log = logging.getLogger('error_log')
-error_log.setLevel(logging.ERROR)
+error_log.setLevel(logging.INFO)
 error_handler = logging.FileHandler('errors.log')
 error_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 error_log.addHandler(error_handler)
 error_log.propagate = False
 
 def import_variables():
-    if len(sys.argv) > 3:
-        print("Usage: python3 main.py /path/to/inputs.yaml <maxworkers>")
+    if len(sys.argv) > 3 or len(sys.argv) < 2:
+        print("Usage: python3 main.py /path/to/inputs.yaml <max_threads>")
         sys.exit(1)
     filepath = sys.argv[1]
     if len(sys.argv) == 3:
-        maxworkers = int(sys.argv[2])
+        max_threads = int(sys.argv[2])
     else:
-        #five seems to be a good default variables across all my test devices
-        maxworkers = 5
-    return filepath, maxworkers
+        #five seems to be a good default variable across all my test devices
+        max_threads = 5
+    return filepath, max_threads
 
 def import_file(filepath):
     try:
@@ -55,6 +54,7 @@ def validate_input(data):
     validated_list = []
     for entry in data:
         try:
+            #opting to leave name in this to differentiate calls.
             name = entry.get('name')
             url = entry.get('url')
             if not name or not url:
@@ -78,7 +78,7 @@ def validate_input(data):
     return validated_list
 
 
-def monitor_website_async(websites, maxworkers):
+def monitor_website_async(websites, max_threads):
     """
     Monitor websites asynchronously.
     Returns a list of results with True/False in the 'success' field:
@@ -86,24 +86,25 @@ def monitor_website_async(websites, maxworkers):
     - False otherwise.
     """
     results = []
-    http = urllib3.PoolManager(maxsize=maxworkers)
+    http = urllib3.PoolManager(maxsize=max_threads)
 
     def get_domain(url):
         """Extract the domain name from a URL."""
         return urlparse(url).netloc
 
     def check_site(site):
-        try:
+        try:           
             start_time = time.time()
             response = http.request(
                 method=site['method'],
                 url=site['url'],
                 headers=site['headers'],
                 body=site['body'],
-                timeout=None,
+                timeout=0.5,
                 retries=False
             )
             elapsed_time_ms = (time.time() - start_time) * 1000
+            error_log.info(f"Info {site['url']} was checked in {elapsed_time_ms}")
             success = elapsed_time_ms <= 500 and 200 <= response.status < 300
             return {
                 'name': site['name'],
@@ -122,7 +123,7 @@ def monitor_website_async(websites, maxworkers):
                 'success': False
             }
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=maxworkers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
         futures = [executor.submit(check_site, site) for site in websites]
         for future in concurrent.futures.as_completed(futures):
             try:
@@ -142,8 +143,6 @@ def monitor_website_async(websites, maxworkers):
 
 def print_stats(results, domain_uptime):
     """Print website uptime statistics in the specified format."""
-
-
     for result in results:
         domain = result['domain']
         if domain not in domain_uptime:
@@ -173,16 +172,15 @@ if __name__ == "__main__":
     #keep timer at start to ensure accurate timing within the program's context
     timer = time.time() + 15
     domain_uptime = {}
-    filepath, maxworkers = import_variables()
+    filepath, max_threads = import_variables()
     data = import_file(filepath)
     validated_data = validate_input(data)
 
     print(f"Scanning {len(data)} websites every 15 seconds...")
     try:
         while True:
-            #make synchronous and lump in 
-            monitoring_results = monitor_website_async(validated_data, maxworkers)
-            print_stats(monitoring_results, domain_uptime)
+            monitor_results = monitor_website_async(validated_data, max_threads)
+            print_stats(monitor_results, domain_uptime)
             timer = waste_time(timer)
     except KeyboardInterrupt:
         sys.exit()

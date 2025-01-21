@@ -1,45 +1,50 @@
-# Project Title
+# Fetch Website Checker
 
-This is for the fetch interview process, I wrote this in python as it's a very simple language and cross-platform compatible for the most part. Written in 3 hours with ChatGPT. Threw this into docker for cross-platform compatibility.
-
-## Requirements
-
-To install the required dependencies, run:
-```sh
-pip install -r requirements.txt
-```
+This is for the fetch interview process, it's designed to import a yaml file and check the uptime of the endpoints listed in the yaml file.
 
 ## Installation
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/your-repo-name.git
+    git clone https://github.com/leebeck3/fetch-program.git
     ```
-2. Navigate to the project directory:
+2. Navigate to the project directory, on Linux the command would be:
     ```sh
-    cd your-repo-name
+    cd fetch-program
     ```
-3. Install the required dependencies:
+3. Ensure that python is installed on your system(macOS & Linux):
+    ```
+    python3 --version
+    ```
+3. Ensure that python is installed on your system(Windows):
+    ```
+    python --version
+    ```
+4. Install the required dependencies:
     ```sh
-    pip install -r requests,pyyaml
+    pip install -r minimal-requirements.yaml
     ```
 
 ## Usage
 
 To run the script, use the following command:
 ```sh
-python script_name.py
+python website-checker.py <input-yaml> <number-of-threads>
 ```
 
-Replace `script_name.py` with the actual name of your script.
+note: if number of workers isn't set it defaults to 5
+
 
 ## Architecture
 
-The goal of this program is have everything written out in the main() module, then there will be API interfaces between each function so you can delve into each error as it crops up. So far this hasn't affected execution speeds(test set was 100 sites).
+The goal of this program is to have everything written out in the main() module as close to human language as possible, enabling easier troubleshooting.
 
-## Contributing
 
-Contributions are welcome, I don't know why you would but be my guest! Just submit a PR, if I see it I'll do something with it(this whole repo will probably be deleted once the job interview is done[if I remember])
+## Next steps
+
+being able to get into the nitty-gritty of why ms > 500ms might be handy eventually depending on how in-depth optimization needs to be. That would turn this into more of a network tool, currently this is built to check lots of sites at a very high-level, so network optimization isn't a concern.
+
+If I needed to really get down to the details for this, I'd rewrite this in C or Rust for performance sake.
 
 ## License
 
