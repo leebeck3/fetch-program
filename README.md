@@ -1,6 +1,6 @@
 # Fetch Website Checker
 
-This is for the fetch interview process, it's designed to import a yaml file and check the uptime of the endpoints listed in the yaml file.
+This is for the fetch interview process, it's designed to import a yaml file and check the uptime of the endpoints listed in the yaml file. I picked python as it should be easier than C or Rust to import dependencies cross-OS, I was wrong.
 
 ## Installation
 
@@ -20,16 +20,21 @@ This is for the fetch interview process, it's designed to import a yaml file and
     ```
     python --version
     ```
-4. Install the required dependencies:
+4. Install the required dependencies(Windows):
     ```sh
     pip install -r minimal-requirements.yaml
     ```
+4. Install the required dependencies system-wide(Debian):
+    ```sh
+    apt install python3-yaml, python3-urllib3
+    ```
+Note: on different OS's there might be different packages, I can test linux or windows, don't have a way to currently virtualize macOS.  
 
 ## Usage
 
 To run the script, use the following command:
 ```sh
-python website-checker.py <input-yaml> <number-of-threads>
+python website-checker.py <input-yaml> (optional)<number-of-threads>
 ```
 
 note: if number of workers isn't set it defaults to 5

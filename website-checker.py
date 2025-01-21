@@ -138,6 +138,8 @@ def monitor_website_async(websites, max_threads):
                     'latency': None,
                     'success': False
                 })
+            except KeyboardInterrupt:
+                sys.exit()
 
     return results
 
