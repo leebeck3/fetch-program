@@ -1,11 +1,12 @@
 import sys
 import time
+import socket
 import logging
 import concurrent.futures
-from urllib.parse import urlparse
 #third party libraries
 import yaml
 import urllib3
+from urllib.parse import urlparse
 
 # Logging setup
 logging.basicConfig(
@@ -20,16 +21,19 @@ error_log.addHandler(error_handler)
 error_log.propagate = False
 
 def import_variables():
-    if len(sys.argv) > 3 or len(sys.argv) < 2:
+    detailed_stats = False
+    if len(sys.argv) > 4 or len(sys.argv) < 1:
         print("Usage: python3 main.py /path/to/inputs.yaml <max_threads>")
         sys.exit(1)
     filepath = sys.argv[1]
-    if len(sys.argv) == 3:
+    if len(sys.argv) >= 3:
         max_threads = int(sys.argv[2])
+    elif len(sys.argv) == 4:
+        detailed_stats = True
     else:
         #five seems to be a good default variable across all my test devices
         max_threads = 5
-    return filepath, max_threads
+    return filepath, max_threads, detailed_stats
 
 def import_file(filepath):
     try:
@@ -77,8 +81,7 @@ def validate_input(data):
             error_log.error(f"Validation error for entry {entry}: {e}")
     return validated_list
 
-
-def monitor_website_async(websites, max_threads):
+def monitor_parallel_websites(websites, max_threads, detailed_stats):
     """
     Monitor websites asynchronously.
     Returns a list of results with True/False in the 'success' field:
@@ -93,33 +96,82 @@ def monitor_website_async(websites, max_threads):
         return urlparse(url).netloc
 
     def check_site(site):
-        try:           
-            start_time = time.time()
-            response = http.request(
-                method=site['method'],
-                url=site['url'],
-                headers=site['headers'],
-                body=site['body'],
-                timeout=0.5,
-                retries=False
+        """
+        Check the availability of a website and provide a detailed latency breakdown.
+
+        Parameters:
+            site (dict): A dictionary with keys:
+                        - 'name': The name of the site.
+                        - 'url': The URL of the site to check.
+                        - 'method': The HTTP method to use (e.g., GET, POST).
+                        - 'headers': HTTP headers to include in the request.
+                        - 'body': Optional request body for POST/PUT requests.
+
+        Returns:
+            dict: A dictionary containing the result of the check, including detailed latency statistics and success status.
+        """
+        try:
+            # DNS resolution latency
+            dns_start = time.time()
+            parsed_url = urllib3.util.parse_url(site['url'])  # Simulate DNS resolution
+            dns_latency = (time.time() - dns_start) * 1000
+
+            # TCP connection latency
+            tcp_start = time.time()
+            connection = http.connection_from_host(
+                parsed_url.host,
+                port=parsed_url.port,
+                scheme=parsed_url.scheme
             )
-            elapsed_time_ms = (time.time() - start_time) * 1000
-            error_log.info(f"Info {site['url']} was checked in {elapsed_time_ms}")
-            success = elapsed_time_ms <= 500 and 200 <= response.status < 300
+            tcp_latency = (time.time() - tcp_start) * 1000
+
+            # HTTP request/response latency
+            http_start = time.time()
+            response = connection.urlopen(
+                method=site['method'],
+                url=parsed_url.request_uri,
+                headers=site.get('headers', {}),
+                body=site.get('body', None),
+                timeout=0.6,
+                retries=False)
+
+            http_latency = (time.time() - http_start) * 1000
+
+            # Total latency
+            total_latency = dns_latency + tcp_latency + http_latency
+
+            # Log the detailed breakdown
+            error_log.info(
+                f"{site['url']} - Latency breakdown: DNS={dns_latency:.2f}ms, "
+                f"TCP={tcp_latency:.2f}ms, HTTP={http_latency:.2f}ms, Total={total_latency:.2f}ms"
+            )
+
+            # Determine success based on total latency and response status
+            success = total_latency <= 500 and 200 <= response.status < 300
+
             return {
                 'name': site['name'],
                 'domain': get_domain(site['url']),
                 'status': response.status,
-                'latency': elapsed_time_ms,
+                'dns_latency': dns_latency,
+                'tcp_latency': tcp_latency,
+                'http_latency': http_latency,
+                'total_latency': total_latency,
                 'success': success
             }
+
         except Exception as e:
+            # Handle and log errors
             error_log.error(f"Error monitoring {site['url']}: {e}")
             return {
                 'name': site['name'],
                 'domain': get_domain(site['url']),
                 'status': 'Error',
-                'latency': None,
+                'error' : str(e),
+                'dns_latency': None,
+                'tcp_latency': None,
+                'http_latency': None,
+                'total_latency': None,
                 'success': False
             }
 
@@ -136,7 +188,8 @@ def monitor_website_async(websites, max_threads):
                     'domain': get_domain(site['url']),
                     'status': 'Error',
                     'latency': None,
-                    'success': False
+                    'success': False,
+                    'error': str(e)
                 })
             except KeyboardInterrupt:
                 sys.exit()
@@ -157,13 +210,14 @@ def print_stats(results, domain_uptime):
         uptime_percentage = round((counts['success_count'] / counts['total_count']) * 100)
         print(f"{domain} has {uptime_percentage:.1f}% uptime availability")
 
-def waste_time(timer):
+def waste_time(future_time):
     '''
     Waste time to ensure the program runs in batches every 15 seconds
     It's probably possible to overflow this, seems highly unlikely though.
     '''
-    time_to_wait = round(timer - time.time(), 2)
+    time_to_wait = round(future_time - time.time(), 2)
     if time_to_wait < 0:
+        #returns the amount of time the program is taking to run
         sys.exit(f"The program is taking {round(time.time() - (timer - 15), 2)} seconds to run, perform performance engineering!.")
     print(f"\nWaiting {time_to_wait} seconds before the next check...")
     time.sleep(time_to_wait)
@@ -172,17 +226,17 @@ def waste_time(timer):
 
 if __name__ == "__main__":
     #keep timer at start to ensure accurate timing within the program's context
-    timer = time.time() + 15
-    domain_uptime = {}
-    filepath, max_threads = import_variables()
+    future_time = time.time() + 15
+    total_results = {}
+    filepath, max_threads, detailed_stats = import_variables()
     data = import_file(filepath)
     validated_data = validate_input(data)
 
     print(f"Scanning {len(data)} websites every 15 seconds...")
     try:
         while True:
-            monitor_results = monitor_website_async(validated_data, max_threads)
-            print_stats(monitor_results, domain_uptime)
-            timer = waste_time(timer)
+            monitor_results = monitor_parallel_websites(validated_data, max_threads, detailed_stats)
+            print_stats(monitor_results, total_results)
+            future_time = waste_time(future_time)
     except KeyboardInterrupt:
         sys.exit()

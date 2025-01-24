@@ -40,7 +40,7 @@ python website-checker.py <input-yaml> (optional)<number-of-threads>
 
 ## Architecture
 
-The goal of this program is to have everything written out in the main() module as close to human language as possible, enabling easier troubleshooting.
+The goal of this program is to have everything written out in the main() module as close to human language as possible, enabling easier troubleshooting with interactive sessions, because the program is command line based it enables a quick ctrl+C, troubleshoot, and relaunching the porgram.
 
 
 ## Next steps
