@@ -3,240 +3,108 @@ import time
 import socket
 import logging
 import concurrent.futures
-#third party libraries
 import yaml
 import urllib3
+import multiprocessing
 from urllib.parse import urlparse
 
-# Logging setup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-error_log = logging.getLogger('error_log')
-error_log.setLevel(logging.INFO)
-error_handler = logging.FileHandler('errors.log')
-error_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-error_log.addHandler(error_handler)
-error_log.propagate = False
+class Logger:
+    def __init__(self):
+        self.logger = logging.getLogger('error_log')
+        self.logger.setLevel(logging.INFO)
+        handler = logging.FileHandler('errors.log')
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.propagate = False
 
-def import_variables():
-    detailed_stats = False
-    if len(sys.argv) > 4 or len(sys.argv) < 1:
-        print("Usage: python3 main.py /path/to/inputs.yaml <max_threads>")
-        sys.exit(1)
-    filepath = sys.argv[1]
-    if len(sys.argv) >= 3:
-        max_threads = int(sys.argv[2])
-    elif len(sys.argv) == 4:
-        detailed_stats = True
-    else:
-        #five seems to be a good default variable across all my test devices
-        max_threads = 5
-    return filepath, max_threads, detailed_stats
+    def log_info(self, message):
+        self.logger.info(message)
 
-def import_file(filepath):
-    try:
-        with open(filepath, 'r') as file:
+    def log_error(self, message):
+        self.logger.error(message)
+
+class Site: 
+    def __init__(self, name: str, url: str, method: str, headers: dict, body: str):
+            self.name = name
+            self.url = url
+            self.method = method
+            self.headers = headers
+            self.body = body
+            self.domain = urlparse(url).netloc
+            self.total_success = 0
+            self.total_attempts = 0
+
+class Monitor:
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.websites = self.load_websites()
+        self.logger = Logger()
+        self.max_threads = (multiprocessing.cpu_count() * 4)
+        self.http = urllib3.PoolManager(maxsize=self.max_threads)
+
+    def load_websites(self):
+        websites = []
+        with open(self.filepath, 'r') as file:
             data = yaml.safe_load(file)
-        return data
-    except FileNotFoundError:
-        sys.exit(f"File not found: {file_path}")
-    except yaml.YAMLError as e:
-        sys.exit(f"Error parsing YAML file: {e}")
-    except Exception as e:
-        sys.exit(f"Unexpected error: {e}")
-
-def validate_input(data):
-    """
-    Validate and standardize input data.
-    Required fields: name, url
-    Optional fields: method (default: GET), headers (default: {}), body (default: None)
-    Logs errors to 'errors.log' for invalid entries.
-    Returns a list of valid website entries.
-    """
-    validated_list = []
-    for entry in data:
+        for entry in data:
+            websites.append(Site(entry.get('name'), entry.get('url'), entry.get('method', "GET"), entry.get('headers', {}), entry.get('body', None)))
+        return websites
+            
+    def check_website(self, site):
         try:
-            #opting to leave name in this to differentiate calls.
-            name = entry.get('name')
-            url = entry.get('url')
-            if not name or not url:
-                raise ValueError(f"Missing 'name' or 'url' in entry: {entry}")
-                return None
+            response = self.http.urlopen(method=site.method,url=site.url,headers=site.headers,body=site.body,timeout=0.5,retries=False)
+            site.total_attempts += 1
+            if 200 <= response.status < 300:
+                site.total_success += 1
 
-            if entry.get('body') is not None:
-                headers = "application/json"
+        except Exception as e:
+            self.logger.log_error(f"Error monitoring {site.url}: {e}")
+
+    def monitor_websites(self):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+            futures = {executor.submit(self.check_website, site): site for site in self.websites}
+            self.print_stats()
+
+    def print_stats(self):
+        for site in self.websites:
+            domain_stats = {}
+            for site in self.websites:
+                if site.domain not in domain_stats:
+                    domain_stats[site.domain] = {'total_success': 0, 'total_attempts': 0}
+                domain_stats[site.domain]['total_success'] += site.total_success
+                domain_stats[site.domain]['total_attempts'] += site.total_attempts
+
+            for domain, stats in domain_stats.items():
+                if stats['total_attempts'] > 0:
+                    uptime_percentage = round((stats['total_success'] / stats['total_attempts']) * 100)
+                else:
+                    uptime_percentage = 0
+                print(f"{domain} has {uptime_percentage}% uptime availability")
+            if site.total_attempts > 0:
+                site.uptime_percentage = round((site.total_success / site.total_attempts) * 100)
             else:
-                headers = {}
+                site.uptime_percentage = 0
+            print(f"{site.domain} has {site.uptime_percentage}% uptime availability")
 
-            validated_list.append({
-                'name': name,
-                'url': url,
-                'method': entry.get('method', 'GET'),
-                'headers': entry.get('headers', headers),
-                'body': entry.get('body', None)
-            })
-        except Exception as e:
-            error_log.error(f"Validation error for entry {entry}: {e}")
-    return validated_list
-
-def monitor_parallel_websites(websites, max_threads, detailed_stats):
-    """
-    Monitor websites asynchronously.
-    Returns a list of results with True/False in the 'success' field:
-    - True if connection time <= 500ms and response status is 200 <= status < 300.
-    - False otherwise.
-    """
-    results = []
-    http = urllib3.PoolManager(maxsize=max_threads)
-
-    def get_domain(url):
-        """Extract the domain name from a URL."""
-        return urlparse(url).netloc
-
-    def check_site(site):
-        """
-        Check the availability of a website and provide a detailed latency breakdown.
-
-        Parameters:
-            site (dict): A dictionary with keys:
-                        - 'name': The name of the site.
-                        - 'url': The URL of the site to check.
-                        - 'method': The HTTP method to use (e.g., GET, POST).
-                        - 'headers': HTTP headers to include in the request.
-                        - 'body': Optional request body for POST/PUT requests.
-
-        Returns:
-            dict: A dictionary containing the result of the check, including detailed latency statistics and success status.
-        """
-        try:
-            # DNS resolution latency
-            dns_start = time.time()
-            parsed_url = urllib3.util.parse_url(site['url'])  # Simulate DNS resolution
-            dns_latency = (time.time() - dns_start) * 1000
-
-            # TCP connection latency
-            tcp_start = time.time()
-            connection = http.connection_from_host(
-                parsed_url.host,
-                port=parsed_url.port,
-                scheme=parsed_url.scheme
-            )
-            tcp_latency = (time.time() - tcp_start) * 1000
-
-            # HTTP request/response latency
-            http_start = time.time()
-            response = connection.urlopen(
-                method=site['method'],
-                url=parsed_url.request_uri,
-                headers=site.get('headers', {}),
-                body=site.get('body', None),
-                timeout=0.6,
-                retries=False)
-
-            http_latency = (time.time() - http_start) * 1000
-
-            # Total latency
-            total_latency = dns_latency + tcp_latency + http_latency
-
-            # Log the detailed breakdown
-            error_log.info(
-                f"{site['url']} - Latency breakdown: DNS={dns_latency:.2f}ms, "
-                f"TCP={tcp_latency:.2f}ms, HTTP={http_latency:.2f}ms, Total={total_latency:.2f}ms"
-            )
-
-            # Determine success based on total latency and response status
-            success = total_latency <= 500 and 200 <= response.status < 300
-
-            return {
-                'name': site['name'],
-                'domain': get_domain(site['url']),
-                'status': response.status,
-                'dns_latency': dns_latency,
-                'tcp_latency': tcp_latency,
-                'http_latency': http_latency,
-                'total_latency': total_latency,
-                'success': success
-            }
-
-        except Exception as e:
-            # Handle and log errors
-            error_log.error(f"Error monitoring {site['url']}: {e}")
-            return {
-                'name': site['name'],
-                'domain': get_domain(site['url']),
-                'status': 'Error',
-                'error' : str(e),
-                'dns_latency': None,
-                'tcp_latency': None,
-                'http_latency': None,
-                'total_latency': None,
-                'success': False
-            }
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-        futures = [executor.submit(check_site, site) for site in websites]
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                results.append(future.result())
-            except Exception as e:
-                site = futures[future]
-                error_log.error(f"Error in ThreadPoolExecutor for {site['url']}: {e}")
-                results.append({
-                    'name': site['name'],
-                    'domain': get_domain(site['url']),
-                    'status': 'Error',
-                    'latency': None,
-                    'success': False,
-                    'error': str(e)
-                })
-            except KeyboardInterrupt:
-                sys.exit()
-
-    return results
-
-def print_stats(results, domain_uptime):
-    """Print website uptime statistics in the specified format."""
-    for result in results:
-        domain = result['domain']
-        if domain not in domain_uptime:
-            domain_uptime[domain] = {'success_count': 0, 'total_count': 0}
-        domain_uptime[domain]['total_count'] += 1
-        if result['success']:
-            domain_uptime[domain]['success_count'] += 1
-
-    for domain, counts in domain_uptime.items():
-        uptime_percentage = round((counts['success_count'] / counts['total_count']) * 100)
-        print(f"{domain} has {uptime_percentage:.1f}% uptime availability")
-
-def waste_time(future_time):
-    '''
-    Waste time to ensure the program runs in batches every 15 seconds
-    It's probably possible to overflow this, seems highly unlikely though.
-    '''
-    time_to_wait = round(future_time - time.time(), 2)
-    if time_to_wait < 0:
-        #returns the amount of time the program is taking to run
-        sys.exit(f"The program is taking {round(time.time() - (timer - 15), 2)} seconds to run, perform performance engineering!.")
-    print(f"\nWaiting {time_to_wait} seconds before the next check...")
-    time.sleep(time_to_wait)
-    timer = time.time() + 15
-    return timer
+    def waste_time(self, future_time):
+        time_to_wait = round(future_time - time.time(), 2)
+        if time_to_wait < 0:
+            sys.exit(f"The program is taking {round(time.time() - (timer - 15), 2)} seconds to run, perform performance engineering!.")
+        print(f"\nWaiting {time_to_wait} seconds before the next check...")
+        time.sleep(time_to_wait)
+        future_time = time.time() + 15
+        return future_time
 
 if __name__ == "__main__":
-    #keep timer at start to ensure accurate timing within the program's context
     future_time = time.time() + 15
-    total_results = {}
-    filepath, max_threads, detailed_stats = import_variables()
-    data = import_file(filepath)
-    validated_data = validate_input(data)
-
-    print(f"Scanning {len(data)} websites every 15 seconds...")
-    try:
-        while True:
-            monitor_results = monitor_parallel_websites(validated_data, max_threads, detailed_stats)
-            print_stats(monitor_results, total_results)
-            future_time = waste_time(future_time)
-    except KeyboardInterrupt:
-        sys.exit()
+    if len(sys.argv) not in [2, 3]:
+        print("Usage: python3 main.py /path/to/inputs.yaml")
+        sys.exit(1)
+    filepath = sys.argv[1]
+    monitor = Monitor(filepath)
+    while True:
+        try:
+            monitor.monitor_websites()
+            future_time = monitor.waste_time(future_time)
+        except KeyboardInterrupt:
+            sys.exit()
