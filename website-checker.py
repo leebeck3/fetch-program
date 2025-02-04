@@ -66,17 +66,13 @@ class Monitor:
                 uptime_percentage = 0
             print(f"{domain} has {uptime_percentage}% uptime availability")
 
-    def time_check(self):
-        if self.first_run:
-            self.first_run = False
-        else:
-            time_to_wait = round(self.future_time - time.time(), 2)
-            if time_to_wait < 0:
-                sys.exit(f"The program is taking {round(time.time() - (self.future_time - 15), 2)} seconds to run, perform performance engineering!.")
-            self.future_time = time.time() + 15
-            print(f"\nWaiting {time_to_wait} seconds before the next check...")
-            time.sleep(time_to_wait)
-        return True
+    def sleep(self):
+        time_to_wait = round(self.future_time - time.time(), 2)
+        if time_to_wait < 0:
+            sys.exit(f"The program is taking {round(time.time() - (self.future_time - 15), 2)} seconds to run, perform performance engineering!.")
+        print(f"\nWaiting {time_to_wait} seconds before the next check...")
+        time.sleep(time_to_wait)
+        self.future_time = time.time() + 15
 
 if __name__ == "__main__":
     monitor = Monitor()
@@ -84,5 +80,6 @@ if __name__ == "__main__":
         print("Usage: python3 main.py /path/to/inputs.yaml")
         sys.exit(1)
     monitor.load_websites(sys.argv[1])
-    while monitor.time_check():
+    while monitor.future_time >= time.time():
         monitor.monitor_websites()
+        monitor.sleep()
